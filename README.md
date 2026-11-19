@@ -1,11 +1,25 @@
-<div align="center">
+# あそびポケット
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+公開Webアプリのソースと読み取り専用QAです。本番URLと既存の画面・機能を維持します。
 
-  <h1>Built with AI Studio</h2>
+## 計測
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+GA4はKatakataLabの共通プロパティを使用し、あそびポケットのページ・イベントには `content_group: Asobi Pocket` を設定します。集計はホスト名と `/asobi-pocket/` のURL範囲で分けます。流入元のUTMと参照元は保持し、ChatGPT経由という理由でテスト扱いしません。
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+公開サイトの動作確認では `?asobi_test=1` を付けて開きます。同じタブの記事・ゲーム間でテスト指定を保持し、GA4タグを読み込まず、Google公式の送信停止フラグも設定します。解除は `?asobi_test=0` です。localhost・127.0.0.1・ローカルファイルでも送信しません。確認アクセスは収集しないため、テスト件数をGA4から復元する仕組みではありません。
 
-</div>
+`node --test tests/asobi-analytics.test.cjs` で一般アクセスの保持とテスト送信停止を検証できます。過去のデータから開発者アクセスを正確に分離することはできません。
+
+## 検証
+
+`python scripts/public-qa/prepare.py` で、現在公開済みの素材を匿名で取得しSHA-256とサイズを照合します。画像・フォント・配布バンドルは権利確認中のため、このGit履歴へ含めません。Web側には現在配信されていない装飾/OGP素材9件の明示的なCI専用代替データがあります。これは素材の公開許可や画面の完全一致を証明するものではありません。
+
+`npm ci --ignore-scripts` の後、GitHub Actionsと同じ検証コマンドを実行します。Public CIには本番Secrets、デプロイ権限、成果物アップロードを持たせません。
+
+ito、ワードウルフ、朝までそれ正解、ウミガメのスープの記事のお題を編集したら、記事のリンク番号を確認し `python3 scripts/sync-asobi-article-topics.py` でゲーム用データを再生成します。CIの `--check` は記事本文・リンクと生成済みデータの一致を検査します。
+
+## 本番運用
+
+認証、収益・検索分析、ライセンス管理、サーバー設定、権利確認中素材と本番デプロイはPrivate側で管理します。Publicの可変ブランチや外部PRを直接デプロイしません。Private側で承認した不変コミットを固定し、元の素材・サーバー設定を重ねて検証してから反映します。CI専用設定・代替素材を本番へ配信してはいけません。
+
+公開済みソースと、移設前から継続中の変更は分けて管理します。未完了の修正は検証が済むまで本番へ反映しません。
